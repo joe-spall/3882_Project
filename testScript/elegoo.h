@@ -40,50 +40,51 @@ const char TRIG_PIN = A5;
 
 enum IR_REMOTE_STATE
 {
-	FORWARD,
-	BACKWARD,
-	LEFT,
-	RIGHT,
-	STOP
+    FORWARD,
+    BACKWARD,
+    LEFT,
+    RIGHT,
+    STOP
 };
 
 class Elegoo
 {
-	private:
-		char currPosServo;
-		char centerPosServo;
-		IR_REMOTE_STATE stateRemote = STOP;
-    void writeSpeedMotor(float pwrLeft, float pwrRight);
-    bool verifyPwrMotor(float pwrLeft, float pwrRight);
-    bool verifyPosServo(char angle);
+    private:
+        char currPosServo;
+        char centerPosServo = 90;
+        IR_REMOTE_STATE stateRemote = STOP;
+        void writeSpeedMotor(float pwrLeft, float pwrRight);
+        bool verifyPwrMotor(float pwrLeft, float pwrRight);
+        bool verifyPosServo(char angle);
     
-	public:
-		// Elegoo Constructor
-		Elegoo(char currPosServo = SERVO_CENTER_DEFAULT, char centerPosServo = SERVO_CENTER_DEFAULT);
-		// Motor Control
-		void goForwardMotor(float pwrLeft, float pwrRight);
-		void goBackwardMotor(float pwrLeft, float pwrRight);
-		void goLeftMotor(float pwrLeft, float pwrRight);
-		void goRightMotor(float pwrLeft, float pwrRight);
-		void stopMotor();
-		// Ultrasonic Control
-		int getDistance();
-		// Ultrasonic Servo Control
-		Servo ultrasonicServo;      // create servo object to control servo
-		char getCenterServo();
-		void setCenterServo(char centerAngle);
-		void goCenterServo();
-		char getPosServo();
-		void setPosServo(char angle);
-		// Light Control
-		bool isRightDark();
-		bool isMiddleDark();
-		bool isLeftDark();
-		// IR Control
-		IRrecv &irrecv;
-		decode_results resultsRemote;
+    public:
+        // Elegoo Constructor
+        Elegoo();
+        void init();
+        // Motor Control
+        void goForwardMotor(float pwrLeft, float pwrRight);
+        void goBackwardMotor(float pwrLeft, float pwrRight);
+        void goLeftMotor(float pwrLeft, float pwrRight);
+        void goRightMotor(float pwrLeft, float pwrRight);
+        void stopMotor();
+        // Ultrasonic Control
+        int getDistance();
+        // Ultrasonic Servo Control
+        Servo ultrasonicServo;      // create servo object to control servo
+        char getCenterServo();
+        void setCenterServo(char centerAngle);
+        void goCenterServo();
+        char getPosServo();
+        void setPosServo(char angle);
+        // Light Control
+        bool isRightDark();
+        bool isMiddleDark();
+        bool isLeftDark();
+        // IR Control
+        IRrecv &irrecv;
+        decode_results resultsRemote;
 
-		void setStateRemote();
-		IR_REMOTE_STATE getStateRemote();
+        void setStateRemote();
+        IR_REMOTE_STATE getStateRemote();
 };
 #endif
