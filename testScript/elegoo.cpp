@@ -121,24 +121,28 @@ void Elegoo::writeSpeedMotor(float pwrLeft, float pwrRight){
 // Ultrasonic Commands
 
 // Ultrasonic distance measurement
-int Elegoo::getDistance() {
+unsigned long Elegoo::getDistance() {
     digitalWrite(TRIG_PIN, LOW);
     delayMicroseconds(2);
     digitalWrite(TRIG_PIN, HIGH);
     delayMicroseconds(10);
     digitalWrite(TRIG_PIN, LOW);
-    return (int)pulseIn(ECHO_PIN, HIGH) / 58;
+    unsigned long distance = pulseIn(ECHO_PIN, HIGH, 5800) / 58;
+    if(distance == 0){
+    	return 150;
+    }
+    return distance;
 }
 
 
 // Ultrasonic Servo Commands
 
 // Ultrasonic Servo Centering Commands
-char Elegoo::getCenterServo() {
+byte Elegoo::getCenterServo() {
     return centerPosServo;
 }
 
-void Elegoo::setCenterServo(char centerAngle) {
+void Elegoo::setCenterServo(byte centerAngle) {
     centerPosServo = centerAngle;
 }
 
@@ -147,11 +151,11 @@ void Elegoo::goCenterServo() {
 }
 
 // Ultrasonic Servo Position commands
-char Elegoo::getPosServo() {
+byte Elegoo::getPosServo() {
     return currPosServo;
 }
 
-void Elegoo::setPosServo(char angle) {
+void Elegoo::setPosServo(byte angle) {
     if(verifyPosServo(angle)){
         currPosServo = angle;
         ultrasonicServo.write(currPosServo);
@@ -162,7 +166,7 @@ void Elegoo::setPosServo(char angle) {
 }
 
 // Angle in degrees from 0 to 180
-bool Elegoo::verifyPosServo(char angle) {
+bool Elegoo::verifyPosServo(byte angle) {
     bool servoPosValid = true;
     if(angle < 0){
         servoPosValid = false;
@@ -177,24 +181,21 @@ bool Elegoo::verifyPosServo(char angle) {
 
 // Light Sensor Commands
 bool Elegoo::isRightDark(){
-    return digitalRead(LIGHT_RIGHT_PIN);
+    return !digitalRead(LIGHT_RIGHT_PIN);
 }
 
-bool Elegoo::isMiddleDark(){
-    return digitalRead(LIGHT_CENTER_PIN);
+bool Elegoo::isCenterDark(){
+    return !digitalRead(LIGHT_CENTER_PIN);
 }
 
 bool Elegoo::isLeftDark(){
-    return digitalRead(LIGHT_LEFT_PIN);
+    return !digitalRead(LIGHT_LEFT_PIN);
 }
 
 // IR Remote Commands
 void Elegoo::setStateRemote(){
     if (irrecv.decode(&resultsRemote)){ 
         unsigned long valueRemote = resultsRemote.value;
-        // DEBUG
-        Serial.println(valueRemote);
-        //
         irrecv.resume();
         switch(valueRemote){
             case FORWARD_CODE:{
@@ -213,7 +214,13 @@ void Elegoo::setStateRemote(){
                 stateRemote = RIGHT;
                 break;
             }
-            default: break;
+            case STOP_CODE:{
+                stateRemote = STOP;
+            	break;
+            }
+            default:{
+            	break;
+            }
         }
     }
 }
