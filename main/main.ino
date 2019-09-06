@@ -8,6 +8,10 @@
 
 #include <Elegoo.h>
 
+#define LEFT_POS = 0 
+#define RIGHT_POS = 180
+#define CENTER_POS = 90 
+
 // Main State Functions
 void followLine() {
 	// Check infrared sensors to determine position on the line
