@@ -8,7 +8,6 @@
 
 #include <Elegoo.h>
 
-#define LEFT_POS 0 
 #define RIGHT_POS 180
 #define CENTER_POS 90 
 #define MIN_DIST 100
@@ -29,6 +28,7 @@ void setup() {
   // put your setup code here, to run once:
     Serial.begin(9600);
     robot.init();
+    robot.setCenterServo(CENTER_POS); 
     currentState = IDLE;
 
 }
@@ -36,7 +36,74 @@ void setup() {
 void loop() {
     Serial.println("Go");
   // put your main code here, to run repeatedly:
+    determineState(); 
+    runState(); 
+
     
+}
+
+// Determine what state you're in 
+void determineState() {
+	switch currentState {
+		case FOLLOW: {
+			if (isObjectAhead()) 
+				currentState = AVOID; 
+			if (isAtStation()) 
+				currentState = STATION;
+			break; 
+		}			
+		case AVOID: {
+			if (!isObjectAhead()) 
+				currentState = FOLLOW; 
+			break;
+		}
+		case STATION: {
+			if (isObjectToRight()) {
+				currentState = MANUFACTURING;
+			} else {
+				currentState = FOLLOW; 
+			}
+			break; 
+		}
+		case MANUFACTURING: {
+			if (!isObjectToRight()) {
+				currentState = FOLLOW; 
+			} else {
+				currentState = MANUFACTURING; 
+			}
+			break; 
+		}
+		case IDLE: {
+			currentState = FOLLOW; 
+			break; 
+		}
+	}
+}
+
+// Run the current state
+void runState() {
+	switch currentState {
+		case FOLLOW: {
+			followLine(); 
+			break; 
+		}
+		case AVOID: {
+			avoidObstacle(); 
+			break; 
+		}
+		case STATION: {
+			waitAtStation(); 
+			break; 
+		}
+		case MANUFACTURING: {
+			waitForManufacturing(); 
+			break; 
+		}
+		case IDLE: {
+			wait(); 
+			break; 
+		}
+	}
 }
 
 // Main State Functions
@@ -46,6 +113,7 @@ void followLine() {
 	// Check obstacles consistently here or in main? 
 	if (isMiddleDark() && !isRightDark() && !isLeftDark()) {
 		// go straight
+		goStraight(); 
 	} else if (isMiddleDark() && isRightDark() && !isLeftDark()) {
 		// turn right
 		turnRight(); 
@@ -53,45 +121,49 @@ void followLine() {
 		// turn left
 		turnLeft(); 
 	} else if (isMiddleDark() && isRightDark() && isRightDark()) {
-		// you're at a station
-		waitAtStation(); 
+		robot.stopMotor(); 
 	}
-
 }
 
 void avoidObstacle() {
+	robot.goCenterServo(); 
 	// If there is an object ahead
-	while (Elegoo::getDistance() < MIN_DIST) {
+	while (robot.getDistance() < MIN_DIST) {
 		// call stop
-		Elegoo::stopMotor(); 
+		robot.stopMotor(); 
 	}
-	// Once removed, return to following the line
-	followLine(); 
-
 }
 
 void waitAtStation() {
-	Elegoo::stopMotor(); 
+	robot.stopMotor(); 
 	// Once all three infrared sensors are lit, we enter here
-	// call check maintenance 
+	// call check manufacturing 
 	if (isObjectToRight() == false) {
 		// wait for one second
 		wait(); 
 	} else {
-		// call wait for maintenance
-		waitForMaintenance(); 
+		// call wait for manufacturing
+		waitForManufacturing(); 
 	}
 	followLine(); 
 }
 
-void waitForMaintenance() {
+void waitForManufacturing() {
 	while (isObjectToRight() == true) {
-		Elegoo::stopMotor(); 
+		robot.stopMotor(); 
 	}
 	followLine(); 
 }
 
 // Lower Level Functions required for Main States
+bool isAtStation() {
+
+}
+
+void goStraight() {
+
+}
+
 void turnLeft() {
 
 }
@@ -104,31 +176,32 @@ void wait() {
 	// Wait one second
 	int t = 0; 
 	while (t < 100) {
-		Elegoo::stopMotor(); 
+		robot.stopMotor(); 
 		t = t+1; 
 	}
 }
 
-void isObjectAhead() {
-	Elegoo::setCenterServo(0); 
-	if (Elegoo::getDistance() < 10) {
-		Elegoo::stopMotor(); 
-		avoidObstacle(); 
-	}
+bool isObjectAhead() {
+	robot.setCenterServo(0); 
+	if (robot.getDistance() < 10) {
+		robot.stopMotor(); 
+		return true; 
+	} 
+	return; 
 }
 
 bool isObjectToRight() {
 	// Set the servo to 90 degrees to the right
-	Elegoo::setPosServo(char 90); 
+	robot.setPosServo(char 90); 
 	// Check for object
-	int dist = Elegoo::getDistance();
+	int dist = robot.getDistance();
 	if (dist < 10) {
-		// There's maintenance happening
+		// There's manufacturing happening
 		return true; 
 	} else {
-		// Maintenance is complete
+		// Manufacturing is complete
 		// Move ultrasonic sensor into central position
-		Elegoo::setCenterServo(0);
+		robot.setCenterServo(0);
 		return false; 
 	}
 
