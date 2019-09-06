@@ -10,7 +10,21 @@
 
 #define RIGHT_POS 180
 #define CENTER_POS 90 
-#define MIN_DIST 100
+#define MIN_OBS_DIST 100
+#define MIN_STATION_DIST 100
+#define FORWARD_POWER_LM .25
+#define FORWARD_POWER_RM .25
+#define RFORWARD_POWER_LM
+#define RFORWARD_POWER_RM
+#define LFORWARD_POWER_LM 
+#define LFORWARD_POWER_RM
+#define HRFORWARD_POWER_RM .5
+#define HRFORWARD_POWER_LM .5
+#define HLFORWARD_POWER_LM .5
+#define HLFORWARD_POWER_RM .5
+#define LEFT_CHECK_CYCLES 5
+#define RIGHT_CHECK_CYCLES 10
+
 
 enum ROBOT_STATE:{
 	FOLLOW,
@@ -22,7 +36,8 @@ enum ROBOT_STATE:{
 
 Elegoo robot;
 ROBOT_STATE currentState;
-
+bool finishedStop = false; 
+bool finishedStation = false; 
 
 void setup() {
   // put your setup code here, to run once:
@@ -39,38 +54,51 @@ void loop() {
     determineState(); 
     runState(); 
 
-    
+    Serial.println("Left Line Sensor:");
+    Serial.println(robot.isLeftDark());
+    Serial.println("Middle Line Sensor:");
+    Serial.println(robot.isMiddleDark());
+    Serial.println("Left Line Sensor:");
+    Serial.println(robot.isLeftDark());
+    Serial.println("Current State:");
+    Serial.println(currentState);
+    Serial.println("Sensor Distance:");
+    Serial.println(robot.getDistance());
+
 }
 
 // Determine what state you're in 
 void determineState() {
 	switch currentState {
 		case FOLLOW: {
-			if (isObjectAhead()) 
+			if (isObjectAhead()) {
 				currentState = AVOID; 
-			if (isAtStation()) 
+			}
+			if (isAtStation()) {
 				currentState = STATION;
+			}
 			break; 
 		}			
 		case AVOID: {
-			if (!isObjectAhead()) 
+			if (!isObjectAhead() && finishedStop) {
 				currentState = FOLLOW; 
+				finishedStop = false; 
+			}
 			break;
 		}
 		case STATION: {
 			if (isObjectToRight()) {
 				currentState = MANUFACTURING;
-			} else {
+			} else if (finishedStation) {
 				currentState = FOLLOW; 
+				finishedStation = false; 
 			}
 			break; 
 		}
 		case MANUFACTURING: {
-			if (!isObjectToRight()) {
+			if (!isObjectToRight() && finishedManufacturing) {
 				currentState = FOLLOW; 
-			} else {
-				currentState = MANUFACTURING; 
-			}
+			} 
 			break; 
 		}
 		case IDLE: {
@@ -111,18 +139,29 @@ void followLine() {
 	// Check infrared sensors to determine position on the line
 	// Turn left or right according or move forward as appropriate
 	// Check obstacles consistently here or in main? 
-	if (isMiddleDark() && !isRightDark() && !isLeftDark()) {
+	if (robot.isMiddleDark() && !robot.isRightDark() && !robot.isLeftDark()) {
 		// go straight
 		goStraight(); 
-	} else if (isMiddleDark() && isRightDark() && !isLeftDark()) {
+	} else if (robot.isMiddleDark() && robot.isRightDark() && !robot.isLeftDark()) {
 		// turn right
 		turnRight(); 
-	} else if (isMiddleDark() && !isRightDark() && isLeftDark()) {
+	} else if (robot.isMiddleDark() && !robot.isRightDark() && robot.isLeftDark()) {
 		// turn left
 		turnLeft(); 
-	} else if (isMiddleDark() && isRightDark() && isRightDark()) {
+	} else if (robot.isMiddleDark() && robot.isRightDark() && robot.isLeftDark()) {
+		// At station
 		robot.stopMotor(); 
-	}
+	} else if (!robot.isMiddleDark() && robot.isRightDark() && !robot.isLeftDark()) {
+		// turn more right
+		turnHardRight(); 
+	} else if (!robot.robot.isMiddleDark() && !robot.robot.isRightDark() && robot.isLeftDark()) {
+		// turn more left
+		turnHardLeft(); 
+	} else if (!robot.isMiddleDark() && !robot.isRightDark() && !robot.isLeftDark()) {
+		// turn more right
+		findLine(); 
+	} 
+
 }
 
 void avoidObstacle() {
@@ -132,76 +171,103 @@ void avoidObstacle() {
 		// call stop
 		robot.stopMotor(); 
 	}
+	finishedStop = true; 
 }
 
 void waitAtStation() {
 	robot.stopMotor(); 
-	// Once all three infrared sensors are lit, we enter here
-	// call check manufacturing 
-	if (isObjectToRight() == false) {
-		// wait for one second
-		wait(); 
-	} else {
-		// call wait for manufacturing
-		waitForManufacturing(); 
-	}
-	followLine(); 
+	wait(); 
+	finishedStation = true; 
 }
 
 void waitForManufacturing() {
-	while (isObjectToRight() == true) {
-		robot.stopMotor(); 
+	while (isObjectToRight()) {
+		wait(); 
 	}
-	followLine(); 
+	robot.goCenterServo(); 
+	wait(); 
+	finishedManufacturing = true; 
 }
 
 // Lower Level Functions required for Main States
 bool isAtStation() {
-
+	if (robot.isMiddleDark() && robot.isRightDark() && robot.isRightDark()) {
+		robot.stopMotor(); 
+		return true; 
+	} else {
+		return false; 
+	}
 }
 
 void goStraight() {
-
+	robot.goForwardMotor(FORWARD_POWER_LM,FORWARD_POWER_RM);
 }
 
 void turnLeft() {
-
+	robot.goLeftMotor(LFORWARD_POWER_LM,LFORWARD_POWER_RM);
 }
 
 void turnRight() {
+	robot.goRightMotor(RFORWARD_POWER_LM,RFORWARD_POWER_RM);
+}
+
+void turnHardLeft() {
+	robot.goLeftMotor(HLFORWARD_POWER_LM,HLFORWARD_POWER_RM);
+}
+
+void turnHardRight() {
+	robot.goRightMotor(HRFORWARD_POWER_LM,HRFORWARD_POWER_RM);
+}
+
+void findLine() {
+	bool noLineFound = true; 
+	int leftCount = 0; 
+	int rightCount = 0; 
+	while(noLineFound && leftCount < LEFT_CHECK_CYCLES) {
+		robot.goLeftMotor(LFORWARD_POWER_LM,LFORWARD_POWER_RM);
+		if (robot.isMiddleDark() || robot.isRightDark() || robot.isLeftDark()) {
+			noLineFound = false; 
+		}
+		delay(100)
+		leftCount++; 
+	}
+	while (noLineFound && rightCount < RIGHT_CHECK_CYCLES) {
+		robot.goRightMotor(RFORWARD_POWER_LM,RFORWARD_POWER_RM); 
+		if (robot.isMiddleDark() || robot.isRightDark() || robot.isLeftDark()) {
+			noLineFound = false; 
+		}
+		delay(100)
+		rightCount++; 
+	}
 
 }
 
 void wait() {
 	// Wait one second
-	int t = 0; 
-	while (t < 100) {
-		robot.stopMotor(); 
-		t = t+1; 
-	}
+	robot.stopMotor(); 
+	delay(1000); 
 }
 
 bool isObjectAhead() {
-	robot.setCenterServo(0); 
-	if (robot.getDistance() < 10) {
+	robot.goCenterServo(); 
+	if (robot.getDistance() < MIN_OBS_DIST) {
 		robot.stopMotor(); 
 		return true; 
 	} 
-	return; 
+	return false; 
 }
 
 bool isObjectToRight() {
-	// Set the servo to 90 degrees to the right
-	robot.setPosServo(char 90); 
+	// Set the servo to 180 degrees to the right
+	robot.goCenterServo(RIGHT_POS); 
 	// Check for object
-	int dist = robot.getDistance();
-	if (dist < 10) {
+	if (robot.getDistance() < MIN_STATION_DIST) {
 		// There's manufacturing happening
 		return true; 
 	} else {
 		// Manufacturing is complete
 		// Move ultrasonic sensor into central position
-		robot.setCenterServo(0);
+		robot.goCenterServo(CENTER_POS);
 		return false; 
 	}
 
