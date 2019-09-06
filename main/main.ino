@@ -8,9 +8,36 @@
 
 #include <Elegoo.h>
 
-#define LEFT_POS = 0 
-#define RIGHT_POS = 180
-#define CENTER_POS = 90 
+#define LEFT_POS 0 
+#define RIGHT_POS 180
+#define CENTER_POS 90 
+#define MIN_DIST 100
+
+enum ROBOT_STATE:{
+	FOLLOW,
+	AVOID,
+	STATION,
+	MANUFACTURING,
+	IDLE
+}
+
+Elegoo robot;
+ROBOT_STATE currentState;
+
+
+void setup() {
+  // put your setup code here, to run once:
+    Serial.begin(9600);
+    robot.init();
+    currentState = IDLE;
+
+}
+
+void loop() {
+    Serial.println("Go");
+  // put your main code here, to run repeatedly:
+    
+}
 
 // Main State Functions
 void followLine() {
@@ -30,13 +57,11 @@ void followLine() {
 		waitAtStation(); 
 	}
 
-
-
 }
 
 void avoidObstacle() {
 	// If there is an object ahead
-	while (Elegoo::getDistance() < 10) {
+	while (Elegoo::getDistance() < MIN_DIST) {
 		// call stop
 		Elegoo::stopMotor(); 
 	}
@@ -106,13 +131,6 @@ bool isObjectToRight() {
 		Elegoo::setCenterServo(0);
 		return false; 
 	}
-
-}
-
-main() {
-	// Switch statement to switch between states
-
-
 
 }
 
