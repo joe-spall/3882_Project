@@ -30,8 +30,8 @@
 #define IN4_PIN 11
 
 // Ultrasonic Pin definition
-const char ECHO_PIN = A4;
-const char TRIG_PIN = A5;
+#define ECHO_PIN A4
+#define TRIG_PIN A5
 
 // Light Pin definition
 #define LIGHT_RIGHT_PIN 10
@@ -50,12 +50,12 @@ enum IR_REMOTE_STATE
 class Elegoo
 {
     private:
-        char currPosServo;
-        char centerPosServo = 90;
+        byte currPosServo;
+        byte centerPosServo = 90;
         IR_REMOTE_STATE stateRemote = STOP;
         void writeSpeedMotor(float pwrLeft, float pwrRight);
         bool verifyPwrMotor(float pwrLeft, float pwrRight);
-        bool verifyPosServo(char angle);
+        bool verifyPosServo(byte angle);
     
     public:
         // Elegoo Constructor
@@ -68,17 +68,17 @@ class Elegoo
         void goRightMotor(float pwrLeft, float pwrRight);
         void stopMotor();
         // Ultrasonic Control
-        int getDistance();
+        unsigned long getDistance();
         // Ultrasonic Servo Control
         Servo ultrasonicServo;      // create servo object to control servo
-        char getCenterServo();
-        void setCenterServo(char centerAngle);
+        byte getCenterServo();
+        void setCenterServo(byte centerAngle);
         void goCenterServo();
-        char getPosServo();
-        void setPosServo(char angle);
+        byte getPosServo();
+        void setPosServo(byte angle);
         // Light Control
         bool isRightDark();
-        bool isMiddleDark();
+        bool isCenterDark();
         bool isLeftDark();
         // IR Control
         IRrecv &irrecv;
