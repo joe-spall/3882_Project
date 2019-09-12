@@ -10,14 +10,16 @@
 
 #define RIGHT_POS 0
 #define CENTER_POS 90 
-#define MIN_OBS_DIST 10
-#define MIN_STATION_DIST 10
-#define FORWARD_POWER_LM 0.35
-#define FORWARD_POWER_RM 0.35
-#define RFORWARD_POWER_LM 0.35
-#define RFORWARD_POWER_RM 0.35
-#define LFORWARD_POWER_LM 0.35
-#define LFORWARD_POWER_RM 0.35
+#define MIN_OBS_DIST 20
+#define MIN_STATION_DIST 20
+#define FORWARD_POWER_LM 0.30
+#define FORWARD_POWER_RM 0.30
+#define FORWARD_POWER_FAST_LM 0.35
+#define FORWARD_POWER_FAST_RM 0.35
+#define RFORWARD_POWER_LM 0.30
+#define RFORWARD_POWER_RM 0.30
+#define LFORWARD_POWER_LM 0.30
+#define LFORWARD_POWER_RM 0.30
 #define HRFORWARD_POWER_RM 0.5
 #define HRFORWARD_POWER_LM 0.5
 #define HLFORWARD_POWER_LM 0.5
@@ -30,7 +32,7 @@ enum ROBOT_STATE{
 	FOLLOW,
 	AVOID,
 	STATION,
-	CLEARHASHMARK,
+	CLEARSTATION,
 	MANUFACTURING,
 	IDLE
 };
@@ -91,12 +93,12 @@ void determineState() {
 			if (isObjectToRight()) {
 				currentState = MANUFACTURING;
 			} else if (finishedStation) {
-				currentState = CLEARHASHMARK; 
+				currentState = CLEARSTATION; 
 				finishedStation = false; 
 			}
 			break; 
 		}
-		case CLEARHASHMARK: {
+		case CLEARSTATION: {
 			if(!isAtStation())
 			{
 				currentState = FOLLOW;
@@ -105,7 +107,8 @@ void determineState() {
 		}
 		case MANUFACTURING: {
 			if (!isObjectToRight() && finishedManufacturing) {
-				currentState = FOLLOW; 
+				currentState = CLEARSTATION; 
+				finishedManufacturing = false;
 			} 
 			break; 
 		}
@@ -134,9 +137,9 @@ void runState() {
 			waitAtStation(); 
 			break; 
 		}
-		case CLEARHASHMARK: {
+		case CLEARSTATION: {
 			Serial.println("clearhashmark");	
-			goStraight();
+			goStraightFast();
 			break;
 		}
 		case MANUFACTURING: {
@@ -146,7 +149,7 @@ void runState() {
 		}
 		case IDLE: {
 			Serial.println("idle");
-			wait(); 
+			goStraightFast();
 			break; 
 		}
 	}
@@ -219,6 +222,11 @@ bool isAtStation() {
 	}
 }
 
+void goStraightFast() {
+	robot.goForwardMotor(FORWARD_POWER_FAST_LM,FORWARD_POWER_FAST_RM);
+	Serial.println("should be going straight");
+}
+
 void goStraight() {
 	robot.goForwardMotor(FORWARD_POWER_LM,FORWARD_POWER_RM);
 	Serial.println("should be going straight");
@@ -250,7 +258,7 @@ void findLine() {
 	int rightCount = 0; 
 	while (noLineFound && rightCount < RIGHT_CHECK_CYCLES) {
 		robot.goRightMotor(HRFORWARD_POWER_LM,HRFORWARD_POWER_RM); 
-		if (robot.isCenterDark() || robot.isRightDark() || robot.isLeftDark()) {
+		if (robot.isCenterDark()) {
 			noLineFound = false; 
 		}
 		delay(100);
@@ -258,14 +266,14 @@ void findLine() {
 	}
 	while(noLineFound && leftCount < LEFT_CHECK_CYCLES) {
 		robot.goLeftMotor(HLFORWARD_POWER_LM,HLFORWARD_POWER_RM);
-		if (robot.isCenterDark() || robot.isRightDark() || robot.isLeftDark()) {
+		if (robot.isCenterDark()) {
 			noLineFound = false; 
 		}
 		delay(100);
 		leftCount++; 
 	}
 	Serial.println("findline");
-
+// || robot.isRightDark() || robot.isLeftDark()
 }
 
 void wait() {
