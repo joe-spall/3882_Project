@@ -24,8 +24,8 @@
 #define HRFORWARD_POWER_LM 0.5
 #define HLFORWARD_POWER_LM 0.5
 #define HLFORWARD_POWER_RM 0.5
-#define LEFT_CHECK_CYCLES 10
-#define RIGHT_CHECK_CYCLES 5
+#define LEFT_CHECK_CYCLES 20
+#define RIGHT_CHECK_CYCLES 10
 
 
 enum ROBOT_STATE{
@@ -48,8 +48,7 @@ void setup() {
     Serial.begin(9600);
     robot.init();
     robot.setCenterServo(CENTER_POS); 
-    currentState = FOLLOW;
-
+    currentState = IDLE;
 }
 
 void loop() {
@@ -160,25 +159,25 @@ void followLine() {
 	// Check infrared sensors to determine position on the line
 	// Turn left or right according or move forward as appropriate
 	// Check obstacles consistently here or in main? 
-	if (robot.isCenterDark() && !robot.isRightDark() && !robot.isLeftDark()) {
+	if (!robot.isLeftDark() && robot.isCenterDark() && !robot.isRightDark()) {
 		// go straight
 		goStraight(); 
-	} else if (robot.isCenterDark() && robot.isRightDark() && !robot.isLeftDark()) {
+	} else if (!robot.isLeftDark() && robot.isCenterDark() && robot.isRightDark()) {
 		// turn right
 		turnRight(); 
-	} else if (robot.isCenterDark() && !robot.isRightDark() && robot.isLeftDark()) {
+	} else if (robot.isLeftDark() && robot.isCenterDark() && !robot.isRightDark()) {
 		// turn left
 		turnLeft(); 
-	} else if (robot.isCenterDark() && robot.isRightDark() && robot.isLeftDark()) {
+	} else if (robot.isLeftDark() && robot.isCenterDark() && robot.isRightDark()) {
 		// At station
 		robot.stopMotor(); 
-	} else if (!robot.isCenterDark() && robot.isRightDark() && !robot.isLeftDark()) {
+	} else if (!robot.isLeftDark() && !robot.isCenterDark() && robot.isRightDark()) {
 		// turn more right
 		turnHardRight(); 
-	} else if (!robot.isCenterDark() && !robot.isRightDark() && robot.isLeftDark()) {
+	} else if (robot.isLeftDark() && !robot.isCenterDark() && !robot.isRightDark()) {
 		// turn more left
 		turnHardLeft(); 
-	} else if (!robot.isCenterDark() && !robot.isRightDark() && !robot.isLeftDark()) {
+	} else if (!robot.isLeftDark() && !robot.isCenterDark() && !robot.isRightDark()) {
 		// turn more right
 		findLine(); 
 	} 
@@ -198,7 +197,6 @@ void avoidObstacle() {
 void waitAtStation() {
 	robot.stopMotor(); 
 	wait(); 
-
 	finishedStation = true; 
 }
 
@@ -214,7 +212,7 @@ void waitForManufacturing() {
 
 // Lower Level Functions required for Main States
 bool isAtStation() {
-	if (robot.isCenterDark() && robot.isRightDark() && robot.isLeftDark()) {
+	if (robot.isLeftDark() && robot.isCenterDark() && robot.isRightDark()) {
 		Serial.println("is at Station");
 		return true; 
 	} else {
@@ -256,20 +254,20 @@ void findLine() {
 	bool noLineFound = true; 
 	int leftCount = 0; 
 	int rightCount = 0; 
-	while (noLineFound && rightCount < RIGHT_CHECK_CYCLES) {
+	while (noLineFound || rightCount < RIGHT_CHECK_CYCLES) {
 		robot.goRightMotor(HRFORWARD_POWER_LM,HRFORWARD_POWER_RM); 
 		if (robot.isCenterDark()) {
 			noLineFound = false; 
 		}
-		delay(100);
+		delay(50);
 		rightCount++; 
 	}
-	while(noLineFound && leftCount < LEFT_CHECK_CYCLES) {
+	while(noLineFound || leftCount < LEFT_CHECK_CYCLES) {
 		robot.goLeftMotor(HLFORWARD_POWER_LM,HLFORWARD_POWER_RM);
 		if (robot.isCenterDark()) {
 			noLineFound = false; 
 		}
-		delay(100);
+		delay(50);
 		leftCount++; 
 	}
 	Serial.println("findline");
