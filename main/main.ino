@@ -12,14 +12,14 @@
 #define CENTER_POS 90 
 #define MIN_OBS_DIST 20
 #define MIN_STATION_DIST 20
-#define FORWARD_POWER_LM 0.30
-#define FORWARD_POWER_RM 0.30
-#define FORWARD_POWER_FAST_LM 0.35
-#define FORWARD_POWER_FAST_RM 0.35
-#define RFORWARD_POWER_LM 0.30
-#define RFORWARD_POWER_RM 0.30
-#define LFORWARD_POWER_LM 0.30
-#define LFORWARD_POWER_RM 0.30
+#define FORWARD_POWER_LM 0.35
+#define FORWARD_POWER_RM 0.35
+#define FORWARD_POWER_FAST_LM 0.40
+#define FORWARD_POWER_FAST_RM 0.40
+#define RFORWARD_POWER_LM 0.50
+#define RFORWARD_POWER_RM 0.50
+#define LFORWARD_POWER_LM 0.50
+#define LFORWARD_POWER_RM 0.50
 #define HRFORWARD_POWER_RM 0.5
 #define HRFORWARD_POWER_LM 0.5
 #define HLFORWARD_POWER_LM 0.5
@@ -56,16 +56,8 @@ void loop() {
     determineState(); 
     runState(); 
 
-    Serial.println("Left Line Sensor:");
-    Serial.println(robot.isLeftDark());
-    Serial.println("Middle Line Sensor:");
-    Serial.println(robot.isCenterDark());
-    Serial.println("Right Line Sensor:");
-    Serial.println(robot.isRightDark());
     Serial.println("Current State:");
     Serial.println(currentState);
-    Serial.println("Sensor Distance:");
-    Serial.println(robot.getDistance());
 
 }
 
@@ -139,6 +131,7 @@ void runState() {
 		case CLEARSTATION: {
 			Serial.println("clearhashmark");	
 			goStraightFast();
+			delay(50);
 			break;
 		}
 		case MANUFACTURING: {
@@ -222,56 +215,50 @@ bool isAtStation() {
 
 void goStraightFast() {
 	robot.goForwardMotor(FORWARD_POWER_FAST_LM,FORWARD_POWER_FAST_RM);
-	Serial.println("should be going straight");
 }
 
 void goStraight() {
 	robot.goForwardMotor(FORWARD_POWER_LM,FORWARD_POWER_RM);
-	Serial.println("should be going straight");
 }
 
 void turnLeft() {
 	robot.goLeftMotor(LFORWARD_POWER_LM,LFORWARD_POWER_RM);
-	Serial.println("left");
 }
 
 void turnRight() {
 	robot.goRightMotor(RFORWARD_POWER_LM,RFORWARD_POWER_RM);
-	Serial.println("right");
 }
 
 void turnHardLeft() {
 	robot.goLeftMotor(HLFORWARD_POWER_LM,HLFORWARD_POWER_RM);
-	Serial.println("hardleft");
 }
 
 void turnHardRight() {
 	robot.goRightMotor(HRFORWARD_POWER_LM,HRFORWARD_POWER_RM);
-	Serial.println("hardright");
 }
 
 void findLine() {
 	bool noLineFound = true; 
 	int leftCount = 0; 
 	int rightCount = 0; 
-	while (noLineFound || rightCount < RIGHT_CHECK_CYCLES) {
+	while (noLineFound && rightCount < RIGHT_CHECK_CYCLES) {
 		robot.goRightMotor(HRFORWARD_POWER_LM,HRFORWARD_POWER_RM); 
-		if (robot.isCenterDark()) {
-			noLineFound = false; 
+		if (robot.isLeftDark() || robot.isCenterDark() || robot.isRightDark()) {
+			noLineFound = false;
 		}
 		delay(50);
 		rightCount++; 
 	}
-	while(noLineFound || leftCount < LEFT_CHECK_CYCLES) {
+	while(noLineFound && leftCount < LEFT_CHECK_CYCLES) {
 		robot.goLeftMotor(HLFORWARD_POWER_LM,HLFORWARD_POWER_RM);
-		if (robot.isCenterDark()) {
+		if (robot.isLeftDark() || robot.isCenterDark() || robot.isRightDark()) {
 			noLineFound = false; 
 		}
 		delay(50);
 		leftCount++; 
 	}
 	Serial.println("findline");
-// || robot.isRightDark() || robot.isLeftDark()
+
 }
 
 void wait() {
