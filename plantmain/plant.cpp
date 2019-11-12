@@ -23,7 +23,7 @@ void plant::setServo0Angle(int newAngle) {
 }
 
 void plant::setServo1Angle(int newAngle) {
-    angleServo1 = map(newAngle, 100, 0, 45, 180);
+    angleServo1 = map(newAngle, 0, 100, 180, 45);
     Servo1.write(angleServo1);
 }
 
