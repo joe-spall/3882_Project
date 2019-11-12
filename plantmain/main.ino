@@ -38,7 +38,6 @@ void setup() {
     plant.setServo0Angle(servo0Pos);
     plant.setServo1Angle(servo1Pos);
     plant.setServo2Angle(servo2Pos);
- //   int photoArray[4] = {pResRight.getDelta(), pResLeft.getDelta(), pResBot.getDelta(), pResTop.getDelta()};
     currentState = HOME;
 }
 
@@ -113,6 +112,7 @@ bool atLightSource(){
 }
 
 bool withinMarginOfLightSource(){
+	
   if((abs(pResTop.getDelta() - pResBot.getDelta()) <= PRESDIFF) || (abs(pResRight.getDelta() - pResLeft.getDelta()) <= PRESDIFF)) {return true;}
   else {return false;}  
 }
@@ -162,43 +162,3 @@ void moveToLight() {
   plant.setServo1Angle(servo1Pos);
   //plant.setServo2Angle(servo2Pos);
 }
-
-/*void moveServo0() {
-	while (photocellReading0 < 500) {
-        servo0Pos += 10; 
-        photocellReading0 = analogRead(photocell0Pin);
-        if (photocellReading0 < 350) {
-        	break; 
-        }
-    }
-}
-
-void moveServo1Right() {
-	while (photocellReading2 < 500) {
-        servo1Pos += 10; 
-        photocellReading2 = analogRead(photocell2Pin);
-        if (photocellReading2 < 350) {
-        	break; 
-        }
-    }
-}
-
-void moveServo1Left() {
-	while (photocellReading3 < 500) {
-        servo1Pos += 10; 
-        photocellReading3 = analogRead(photocell3Pin);
-        if (photocellReading3 < 350) {
-        	break; 
-        }
-    }
-}
-
-void moveServo2() {
-	while (photocellReading1 < 500) {
-        servo2Pos += 10; 
-        photocellReading1= analogRead(photocell1Pin);
-        if (photocellReading1 < 350) {
-        	break; 
-        }
-    }
-}*/
