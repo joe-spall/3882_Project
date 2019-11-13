@@ -216,10 +216,10 @@ void Elegoo::setStateRemote(){
             }
             case STOP_CODE:{
                 stateRemote = STOP;
-            	break;
+                break;
             }
             default:{
-            	break;
+                break;
             }
         }
     }

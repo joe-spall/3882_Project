@@ -3,8 +3,8 @@
 Servo servo0;  // create servo object to control a servo
 Servo servo1;  // create servo object to control a servo
 Servo servo2;  // create servo object to control a servo
-int servo0Pin = 9;
-int servo1Pin = 10;
+int servo0Pin = 10;
+int servo1Pin = 9;
 int servo2Pin = 11;
 
 void setup() {
