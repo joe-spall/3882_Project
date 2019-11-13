@@ -46,25 +46,7 @@ void loop() {
 
     determineState(); 
     runState(); 
-
- /*   Serial.println("Current State:");
-    Serial.println(currentState);
-    Serial.println("Light Measurement Ambient");
-    pResTop.readPhotoCell();
-    Serial.println(pResTop.getPhotoCellReading());
-    Serial.println("Light Measurement Base");
-    Serial.println(pResTop.getPhotoCellBase());
-    Serial.println("Light Measurement Delta");
-    Serial.println(pResTop.getDelta());
-    Serial.println("Servo 1 Pos");
-    Serial.println(servo1Pos);*/
-
-    Serial.print(pResTop.getDelta());
-    Serial.print(", ");
-    Serial.println(pResBot.getDelta());
-
-
-    delay(100);
+    delay(20);
 
 }
 
@@ -129,36 +111,41 @@ void returnHome() {
 }
 
 void moveToLight() {
-  if(pResBot.getPhotoCellReading() - pResTop.getPhotoCellReading() > PRESDIFF && servo1Pos < 100) {
+  if(pResBot.getDelta() - pResTop.getDelta() > PRESDIFF && servo1Pos < 100) {
     servo1Pos += 1;
   }
 
   // Photocell 1 greater than Photocell 3
-  if(pResTop.getPhotoCellReading() - pResBot.getPhotoCellReading() > PRESDIFF && servo1Pos > 0){
+  if(pResTop.getDelta() - pResBot.getDelta() > PRESDIFF && servo1Pos > 0){
     servo1Pos -= 1;
   }
 
-  /*if(pResRight.getDelta() - pResLeft.getDelta() > PRESDIFF){
+  plant.setServo1Angle(servo1Pos);
+
+  if(pResRight.getDelta() - pResLeft.getDelta() > PRESDIFF){
     servo0Pos = 0;
-    servo2Pos = 180;
-    Serial.println("Servo2Pos");
-    Serial.println(servo2Pos);
-    delay(3);
+    servo2Pos = 92;
+    plant.setServo0Angle(servo0Pos);
+    plant.setServo2Angle(servo2Pos);
+    delay(40);
     servo0Pos = 90;
     servo2Pos = 90;
+    plant.setServo0Angle(servo0Pos);
+    plant.setServo2Angle(servo2Pos);
+    delay(5);
   }
 
   if(pResLeft.getDelta() - pResRight.getDelta() > PRESDIFF){
     servo2Pos = 0;
-    servo0Pos = 180;
-    Serial.println("Servo0Pos");
-    Serial.println(servo0Pos);
-    delay(3);
+    servo0Pos = 92;
+    plant.setServo0Angle(servo0Pos);
+    plant.setServo2Angle(servo2Pos);
+    delay(40);
     servo2Pos = 90;
     servo0Pos = 90;
-  }*/
+    plant.setServo0Angle(servo0Pos);
+    plant.setServo2Angle(servo2Pos);
+    delay(5);
+  }
 
-  //plant.setServo0Angle(servo0Pos);
-  plant.setServo1Angle(servo1Pos);
-  //plant.setServo2Angle(servo2Pos);
 }
