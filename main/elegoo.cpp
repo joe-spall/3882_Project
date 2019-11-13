@@ -129,7 +129,7 @@ unsigned long Elegoo::getDistance() {
     digitalWrite(TRIG_PIN, LOW);
     unsigned long distance = pulseIn(ECHO_PIN, HIGH, 5800) / 58;
     if(distance == 0){
-        return 150;
+    	return 150;
     }
     return distance;
 }

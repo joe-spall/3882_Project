@@ -10,7 +10,8 @@ void setup() {
 }
 
 void loop() {
-    Serial.println("Go");
+
+
   // put your main code here, to run repeatedly:
     
 }
