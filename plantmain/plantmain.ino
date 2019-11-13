@@ -4,6 +4,7 @@
 #include "photoCell.h"
 
 #define PRESDIFF 30
+#define TOPDIFF 30
 
 #define PHOTORES0PIN A0
 #define PHOTORES1PIN A1
@@ -106,46 +107,56 @@ void returnHome() {
   		servo1Pos--;
   		plant.setServo1Angle(servo1Pos);
   	} 
-
+    
   	plant.setServo2Angle(90); 
+    delay(5);
 }
 
 void moveToLight() {
-  if(pResBot.getDelta() - pResTop.getDelta() > PRESDIFF && servo1Pos < 100) {
-    servo1Pos += 1;
+  int pResBotDelta = pResBot.getDelta();
+  int pResTopDelta = pResTop.getDelta();
+  int pResLeftDelta = pResLeft.getDelta();
+  int pResRightDelta = pResRight.getDelta();
+ 
+  
+  if(pResBotDelta - pResTopDelta > TOPDIFF) {
+    if(servo1Pos < 100){
+      servo1Pos += 2;
+    }
+  } else if(pResTopDelta - pResBotDelta > TOPDIFF){
+    if(servo1Pos > 0){
+      servo1Pos -= 1;
+    }
   }
-
-  // Photocell 1 greater than Photocell 3
-  if(pResTop.getDelta() - pResBot.getDelta() > PRESDIFF && servo1Pos > 0){
-    servo1Pos -= 1;
-  }
-
+  
   plant.setServo1Angle(servo1Pos);
 
-  if(pResRight.getDelta() - pResLeft.getDelta() > PRESDIFF){
-    servo0Pos = 0;
+  if(pResRightDelta - pResLeftDelta  > PRESDIFF){
+    int ratio = (pResRightDelta - pResLeftDelta)/4;
+    ratio = constrain(ratio,0, 1000);
+    servo0Pos = map(ratio, 0, 400, 80, 0);
     servo2Pos = 92;
     plant.setServo0Angle(servo0Pos);
     plant.setServo2Angle(servo2Pos);
-    delay(40);
+    delay(30);
     servo0Pos = 90;
     servo2Pos = 90;
     plant.setServo0Angle(servo0Pos);
     plant.setServo2Angle(servo2Pos);
-    delay(5);
   }
 
-  if(pResLeft.getDelta() - pResRight.getDelta() > PRESDIFF){
-    servo2Pos = 0;
+  if(pResLeftDelta - pResRightDelta > PRESDIFF){
+    int ratio = (pResLeftDelta - pResRightDelta)/4;
+    ratio = constrain(ratio,0, 1000);
+    servo2Pos = map(ratio, 0, 400, 80, 0);
     servo0Pos = 92;
     plant.setServo0Angle(servo0Pos);
     plant.setServo2Angle(servo2Pos);
-    delay(40);
+    delay(30);
     servo2Pos = 90;
     servo0Pos = 90;
     plant.setServo0Angle(servo0Pos);
     plant.setServo2Angle(servo2Pos);
-    delay(5);
   }
-
+  delay(5);
 }
