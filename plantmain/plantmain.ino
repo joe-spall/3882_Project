@@ -15,8 +15,7 @@
 
 enum PLANTSTATE{
 	MOVETOLIGHT,
-  STANDBY, 
-	HOME
+  STANDBY
 };
 
 PLANTSTATE currentState;
@@ -40,7 +39,7 @@ void setup() {
     plant.setServo0Angle(servo0Pos);
     plant.setServo1Angle(servo1Pos);
     plant.setServo2Angle(servo2Pos);
-    currentState = HOME;
+    currentState = STANDBY;
 }
 
 void loop() {
@@ -61,12 +60,6 @@ void determineState() {
 
   	// Map the index to a current state 
   	switch (currentState) {
-  		case HOME: {
-        	if(!atLightSource()) {
-        		currentState = MOVETOLIGHT;
-        	}
-  			break; 
-  		}
       case STANDBY: {
           if(!atLightSource()) {
             currentState = MOVETOLIGHT; 
@@ -86,14 +79,8 @@ void determineState() {
 // Run the current state
 void runState() {
 	switch (currentState) {
-		case HOME: {
-			returnHome(); 
-			break; 
-		}
     case STANDBY: {
-      plant.setServo0Angle(90); 
-      plant.setServo1Angle(servo1Pos); 
-      plant.setServo2Angle(90); 
+      standby();
       break; 
     }
 		case MOVETOLIGHT: {
@@ -114,15 +101,10 @@ bool withinMarginOfLightSource(){
   else {return false;}  
 }
 
-void returnHome() {
-  	plant.setServo0Angle(90);
-
-//  	if(servo1Pos > 0){
-//  		servo1Pos--;
-//  		plant.setServo1Angle(servo1Pos);
-//  	} 
-    
-  	plant.setServo2Angle(90); 
+void standby() {
+      plant.setServo0Angle(90); 
+      plant.setServo1Angle(servo1Pos); 
+      plant.setServo2Angle(90); 
     delay(5);
 }
 
