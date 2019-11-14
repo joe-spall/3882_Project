@@ -14,7 +14,8 @@
 #define abs(x) ((x)>0?(x):-(x))
 
 enum PLANTSTATE{
-	MOVETOLIGHT, 
+	MOVETOLIGHT,
+  STANDBY, 
 	HOME
 };
 
@@ -66,10 +67,17 @@ void determineState() {
         	}
   			break; 
   		}
+      case STANDBY: {
+          if(!atLightSource()) {
+            currentState = MOVETOLIGHT; 
+          }
+        break; 
+        
+      }
   		case MOVETOLIGHT: {
   			if(withinMarginOfLightSource()) {
-          			currentState = HOME;
-          	}
+          	currentState = STANDBY; 
+        }
   			break; 
   		}
   	}
@@ -82,6 +90,12 @@ void runState() {
 			returnHome(); 
 			break; 
 		}
+    case STANDBY: {
+      plant.setServo0Angle(90); 
+      plant.setServo1Angle(servo1Pos); 
+      plant.setServo2Angle(90); 
+      break; 
+    }
 		case MOVETOLIGHT: {
 			moveToLight(); 
 			break; 
@@ -103,10 +117,10 @@ bool withinMarginOfLightSource(){
 void returnHome() {
   	plant.setServo0Angle(90);
 
-  	if(servo1Pos > 0){
-  		servo1Pos--;
-  		plant.setServo1Angle(servo1Pos);
-  	} 
+//  	if(servo1Pos > 0){
+//  		servo1Pos--;
+//  		plant.setServo1Angle(servo1Pos);
+//  	} 
     
   	plant.setServo2Angle(90); 
     delay(5);
